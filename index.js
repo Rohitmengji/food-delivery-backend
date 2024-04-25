@@ -4,7 +4,7 @@ const { Client } = require("pg");
 const swaggerSetup = require("./swagger");
 const cors = require("cors");
 const app = express();
-const PORT = process.env.PORT || 4000;
+const PORT = 4000;
 
 const baseDistance = 5; // in km
 const basePrice = 10; // in euros
