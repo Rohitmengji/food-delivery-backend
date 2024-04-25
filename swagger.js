@@ -16,7 +16,7 @@ const options = {
       },
     ],
   },
-  apis: ["./index.js"], // Path to the main application file
+  apis: ["./index.js"], // Path to the main app file
 };
 
 const specs = swaggerJsdoc(options);
