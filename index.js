@@ -1,10 +1,10 @@
 require("dotenv").config();
 const express = require("express");
-const { Client } = require("pg");
 const swaggerSetup = require("./swagger");
 const cors = require("cors");
 const app = express();
 const PORT = 4000;
+const pool = require("./db");
 
 const baseDistance = 5; // in km
 const basePrice = 10; // in euros
@@ -16,58 +16,6 @@ const prices = {
 };
 
 const currency = "euros";
-
-const connectionString = process.env.DATABASE_URL;
-
-const client = new Client({
-  connectionString: connectionString,
-});
-
-const connectToDatabase = async () => {
-  try {
-    await client.connect();
-    console.log("Connected to PostgreSQL database");
-  } catch (error) {
-    console.error("Connection error", error);
-  }
-};
-
-connectToDatabase();
-
-// Check if the table exists, if not, create it
-const checkTableQuery = `
-  SELECT to_regclass('public.delivery_data') AS exists
-`;
-
-client.query(checkTableQuery, (err, res) => {
-  if (err) {
-    console.error("Error checking for table", err);
-    return;
-  }
-  if (!res.rows[0].exists) {
-    const createTableQuery = `
-      CREATE TABLE delivery_data (
-        id SERIAL PRIMARY KEY,
-        organization_id VARCHAR(255) NOT NULL,
-        zone VARCHAR(255) NOT NULL,
-        total_distance FLOAT NOT NULL,
-        item_type VARCHAR(255) NOT NULL,
-        total_price FLOAT NOT NULL,
-        currency VARCHAR(255) NOT NULL,
-        timestamp TIMESTAMP NOT NULL
-      )
-    `;
-    client.query(createTableQuery, (err, res) => {
-      if (err) {
-        console.error("Error creating table", err);
-        return;
-      }
-      console.log("Table is successfully created");
-    });
-  } else {
-    console.log("Table already exists");
-  }
-});
 
 // Calculate delivery cost
 const calculateCost = (distance, itemType) => {
@@ -127,7 +75,7 @@ app.post("/calculate-cost", async (req, res) => {
       timestamp,
     ];
 
-    const result = await client.query(insertDataQuery, values);
+    const result = await pool.query(insertDataQuery, values);
     res.json({ total_price: `${totalPrice} ${currency}` });
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -137,7 +85,7 @@ app.post("/calculate-cost", async (req, res) => {
 app.get("/data", async (req, res) => {
   try {
     const getDataQuery = `SELECT * FROM delivery_data`;
-    const result = await client.query(getDataQuery);
+    const result = await pool.query(getDataQuery);
     res.json(result.rows);
   } catch (error) {
     console.error("Error fetching data", error);
@@ -151,8 +99,19 @@ app.delete("/data/:organization_id", async (req, res) => {
     const deleteDataQuery = `DELETE FROM delivery_data 
     WHERE organization_id = $1`;
 
-    const result = await client.query(deleteDataQuery, [organization_id]);
+    const result = await pool.query(deleteDataQuery, [organization_id]);
     res.json({ message: "Data Deleted Successfully" });
+  } catch (error) {
+    console.error("Error deleting data", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.delete("/data", async (req, res) => {
+  try {
+    const deleteAllDataQuery = `DELETE FROM delivery_data`;
+    await pool.query(deleteAllDataQuery);
+    res.json({ message: "All Data Deleted Successfully" });
   } catch (error) {
     console.error("Error deleting data", error);
     res.status(500).json({ error: "Internal server error" });
