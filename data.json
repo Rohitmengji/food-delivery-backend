@@ -1,0 +1,38 @@
+[
+  {
+    "zone": "central",
+    "organization_id": "015",
+    "total_distance": 9,
+    "item_type": "nonperishable",
+    "total_price": 14,
+    "currency": "euros",
+    "timestamp": "2024-04-23T14:21:07.678Z"
+  },
+  {
+    "zone": "central",
+    "organization_id": "015",
+    "total_distance": 19,
+    "item_type": "perishable",
+    "total_price": 31,
+    "currency": "euros",
+    "timestamp": "2024-04-23T16:01:59.062Z"
+  },
+  {
+    "zone": "central",
+    "organization_id": 12,
+    "total_distance": 14,
+    "item_type": "perishable",
+    "total_price": 23.5,
+    "currency": "euros",
+    "timestamp": "2024-04-23T16:39:37.611Z"
+  },
+  {
+    "organization_id": 12,
+    "zone": "east",
+    "total_distance": 21,
+    "item_type": "perishable",
+    "total_price": 34,
+    "currency": "euros",
+    "timestamp": "2024-04-25T07:25:32.694Z"
+  }
+]
