@@ -1,8 +1,10 @@
+require("dotenv").config();
 const express = require("express");
 const { Client } = require("pg");
 const swaggerSetup = require("./swagger");
+const cors = require("cors");
 const app = express();
-const PORT = 4000;
+const PORT = process.env.PORT || 4000;
 
 const baseDistance = 5; // in km
 const basePrice = 10; // in euros
@@ -15,7 +17,7 @@ const prices = {
 
 const currency = "euros";
 
-const connectionString = "postgres://postgres:123456@localhost:5432/postgres";
+const connectionString = process.env.DATABASE_URL;
 
 const client = new Client({
   connectionString: connectionString,
@@ -60,6 +62,9 @@ const calculateCost = (distance, itemType) => {
   }
   return totalPrice;
 };
+
+// Enable CORS
+app.use(cors());
 
 app.use(express.json());
 
