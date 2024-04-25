@@ -22,31 +22,51 @@ const connectionString = process.env.DATABASE_URL;
 const client = new Client({
   connectionString: connectionString,
 });
-client
-  .connect()
-  .then(() => console.log("Connected to PostgreSQL database"))
-  .catch((err) => console.error("Connection error", err));
 
-// Create table if not exists
-const createTableQuery = `
-  CREATE TABLE IF NOT EXISTS delivery_data (
-    id SERIAL PRIMARY KEY,
-    organization_id VARCHAR(255) NOT NULL,
-    zone VARCHAR(255) NOT NULL,
-    total_distance FLOAT NOT NULL,
-    item_type VARCHAR(255) NOT NULL,
-    total_price FLOAT NOT NULL,
-    currency VARCHAR(255) NOT NULL,
-    timestamp TIMESTAMP NOT NULL
-  )
+const connectToDatabase = async () => {
+  try {
+    await client.connect();
+    console.log("Connected to PostgreSQL database");
+  } catch (error) {
+    console.error("Connection error", error);
+  }
+};
+
+connectToDatabase();
+
+// Check if the table exists, if not, create it
+const checkTableQuery = `
+  SELECT to_regclass('public.delivery_data') AS exists
 `;
 
-client.query(createTableQuery, (err, res) => {
+client.query(checkTableQuery, (err, res) => {
   if (err) {
-    console.error("Error creating table", err);
+    console.error("Error checking for table", err);
     return;
   }
-  console.log("Table is successfully created");
+  if (!res.rows[0].exists) {
+    const createTableQuery = `
+      CREATE TABLE delivery_data (
+        id SERIAL PRIMARY KEY,
+        organization_id VARCHAR(255) NOT NULL,
+        zone VARCHAR(255) NOT NULL,
+        total_distance FLOAT NOT NULL,
+        item_type VARCHAR(255) NOT NULL,
+        total_price FLOAT NOT NULL,
+        currency VARCHAR(255) NOT NULL,
+        timestamp TIMESTAMP NOT NULL
+      )
+    `;
+    client.query(createTableQuery, (err, res) => {
+      if (err) {
+        console.error("Error creating table", err);
+        return;
+      }
+      console.log("Table is successfully created");
+    });
+  } else {
+    console.log("Table already exists");
+  }
 });
 
 // Calculate delivery cost
