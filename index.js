@@ -159,6 +159,11 @@ app.delete("/data/:organization_id", async (req, res) => {
   }
 });
 
+// Wildcard route for undefined endpoints
+app.use((req, res) => {
+  res.status(404).json({ error: "Unknown request" });
+});
+
 // Setup Swagger
 swaggerSetup(app);
 
